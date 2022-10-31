@@ -18,55 +18,57 @@ void formatMacAddress (const uint8 *macAddr, char *buffer, int maxLength){
   snprintf(buffer, maxLength, "%02x:%02x:%02x:%02x:%02x:%02x", macAddr[0], macAddr[1],macAddr[2],macAddr[3],macAddr[4],macAddr[5]);
 }
 
-void receiveCallback(uint8_t *macAddr, uint8_t *data, uint8_t dataLen)
-{
+void receiveCallback(uint8_t *macAddr, uint8_t *data, uint8_t dataLen) {
   uint8_t max_len = 250;
   char buffer[max_len + 1];
   int msgLen = min(max_len, dataLen);
-strncpy(buffer, (const char *)data, msgLen);
-buffer[msgLen] = 0;
-char macStr[18];
-formatMacAddress(macAddr, macStr, 18);
-if (strcmp("estop", buffer) == 0)
-{
-  // bEStopOn = true;
-  Serial.println("estop");
-  // Add check for clear (to-do)
-}
-else
-{
-  // bEStopOn = false;
-  Serial.println("clear");
-}
+  strncpy(buffer, (const char *)data, msgLen);
+  buffer[msgLen] = 0;
+  char macStr[18];
+  formatMacAddress(macAddr, macStr, 18);
+  if (strcmp("estop", buffer) == 0)
+  {
+    // bEStopOn = true;
+    Serial.println("estop");
+    // Add check for clear (to-do)
+  }
+  else
+  {
+    // bEStopOn = false;
+    Serial.println("clear");
+  }
 
 }
 void sentCallback(uint8_t *macAddr, uint8 status){
-char macStr[18];
-formatMacAddress(macAddr, macStr, 18);
+  char macStr[18];
+  formatMacAddress(macAddr, macStr, 18);
 }
 void setup() {
   // put your setup code here, to run once:
-pinMode(iGreenPin, OUTPUT);
-pinMode(iRedPin, OUTPUT);
-EStopButton.setDebounceTime(lKeyDebounce);
-  
-Serial.begin(115200);
-delay(1000);
+  pinMode(iGreenPin, OUTPUT);
+  pinMode(iRedPin, OUTPUT);
+  EStopButton.setDebounceTime(lKeyDebounce);
+    
+  Serial.begin(115200);
+  delay(1000);
 
-WiFi.mode(WIFI_STA);
-WiFi.disconnect();
+  WiFi.mode(WIFI_STA);
+  WiFi.disconnect();
 
-if (esp_now_init() == 0)
-{esp_now_set_self_role(ESP_NOW_ROLE_COMBO);
-esp_now_register_recv_cb(receiveCallback);
-esp_now_register_send_cb(sentCallback);
-}
-else
-{
-  Serial.println("ESP-NOW init failed");
-delay(3000);
-ESP.restart();
-}
+  if (esp_now_init() == 0)
+  {esp_now_set_self_role(ESP_NOW_ROLE_COMBO);
+  esp_now_register_recv_cb(receiveCallback);
+  esp_now_register_send_cb(sentCallback);
+  }
+  else
+  {
+    Serial.println("ESP-NOW init failed");
+  delay(3000);
+  ESP.restart();
+  }
+  if (EStopButton.getStateRaw() == HIGH) {
+    bEStopOn = true;
+  }
 
 }
 
@@ -84,14 +86,6 @@ void broadcast(const String &message)
   }
   uint8 result = esp_now_send(NULL, (u8 *)message.c_str(), message.length());
 
-  /*if (result == 0)
-  {
-    Serial.println("Broadcast message success");
-  }
-  else 
-  {
-    Serial.println("Unknown error, try again lol");
-  }*/
 }
 
 void loop() {      
